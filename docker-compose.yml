@@ -41,6 +41,8 @@ services:
       - 8080:8080
     networks:
       - all-network
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
     develop:
       watch:
         - action: rebuild
@@ -52,6 +54,8 @@ services:
       - connector
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-server.git
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
     networks:
       - all-network
 
