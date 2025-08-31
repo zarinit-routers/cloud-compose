@@ -57,7 +57,7 @@ services:
     ports:
       - 9090:9090
     depends_on:
-      - connector
+      - cloud-connector
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-server.git
     environment:
