@@ -1,5 +1,5 @@
 services:
-  connector-database:
+  cloud-connector-database:
     restart: always
     image: "postgres:latest"
     ports:
@@ -9,7 +9,7 @@ services:
     networks:
       - all-network
     volumes:
-      - /tmp/cloud-connector-db/:/var/lib/postgresql/data/
+      - cloud-connector-database-data:/var/lib/postgresql/data/
 
   rabbit-mq:
     image: "rabbitmq:latest"
@@ -34,7 +34,7 @@ services:
   cloud-connector:
     restart: always
     depends_on:
-      - connector-database
+      - cloud-connector-database
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-connector.git
     ports:
@@ -44,9 +44,9 @@ services:
       - all-network
     environment:
       RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
-      CONNECTOR_GRPC_ADDR: "connector:8081"
-      DATABASE_CONNECTION_STRING: "host='connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
-      DATABASE_AUTO_MIGRATE: true
+      CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
+      DATABASE_CONNECTION_STRING: "host='cloud-connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
+      DATABASE_AUTO_MIGRATE: false
     develop:
       watch:
         - action: rebuild
@@ -62,10 +62,43 @@ services:
     build: https://github.com/zarinit-routers/cloud-server.git
     environment:
       RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
-      CONNECTOR_GRPC_ADDR: "connector:8081"
+      CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
     networks:
       - all-network
+
+  cloud-auth:
+    build: https://github.com/zarinit-routers/cloud-auth.git
+    ports:
+      - "5001:5001"
+    restart: always
+    environment:
+      FLASK_ENV: development
+      SQLALCHEMY_DATABASE_URI: 'postgresql+psycopg2://auth-db-user:CoolPassword123@cloud-auth-database/auth-db' 
+      ROOT_USER_EMAIL: root@admin.com
+      ROOT_USER_PASSWORD: 1
+    depends_on:
+      - cloud-auth-database
+    networks:
+      - cloud-auth-network
+      - all-network
+
+  cloud-auth-database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auth-db
+      POSTGRES_USER: auth-db-user
+      POSTGRES_PASSWORD: CoolPassword123
+    volumes:
+      - cloud-auth-database-data:/var/lib/postgresql/data
+    networks:
+      - cloud-auth-network
 
 networks:
   all-network:
     driver: bridge
+  cloud-auth-network:
+    driver: bridge
+
+volumes:
+  cloud-auth-database-data:
+  cloud-connector-database-data:
