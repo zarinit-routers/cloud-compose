@@ -7,7 +7,7 @@ services:
     env_file:
       - ./env/connector-database.env
     networks:
-      - all-network
+      - cloud-connector-network
     volumes:
       - cloud-connector-database-data:/var/lib/postgresql/data/
 
@@ -18,16 +18,7 @@ services:
     ports:
       - 5672:5672
     networks:
-      - all-network
-    healthcheck:
-      test:
-        - CMD
-        - rabbitmq-diagnostics
-        - '-q'
-        - ping
-      retries: 3
-      timeout: 5s
-      interval: 10s
+      - rabbitmq-network
     volumes:
       - /tmp/rabbitmq/:/var/lib/rabbitmq
 
@@ -42,28 +33,29 @@ services:
       - 8081:8081
     networks:
       - all-network
+      - cloud-connector-network
+      - rabbitmq-network
+    env_file:
+      - ./env/jwt.env
+      - ./env/rabbitmq-connect.env
     environment:
-      RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
       CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
       DATABASE_CONNECTION_STRING: "host='cloud-connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
       DATABASE_AUTO_MIGRATE: false
-    develop:
-      watch:
-        - action: rebuild
-          path: .
 
   cloud-server:
     restart: always
     ports:
       - 9090:9090
     depends_on:
-      - cloud-connector
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-server.git
+    env_file:
+      - ./env/rabbitmq-connect.env
     environment:
-      RABBITMQ_URL: "amqp://guest:guest@rabbit-mq:5672/"
       CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
     networks:
+      - rabbitmq-network
       - all-network
 
   cloud-auth:
@@ -92,11 +84,51 @@ services:
       - cloud-auth-database-data:/var/lib/postgresql/data
     networks:
       - cloud-auth-network
+  
+  cloud-organizations:
+    build: https://github.com/zarinit-routers/cloud-organizations.git
+    ports:
+      - "8090:8080"
+    restart: always
+    env_file:
+      - ./env/jwt.env
+    networks:
+      - all-network
+  trefik:
+    image: traefik:latest
+    ports:
+      - 80:80
+      - 9000:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./providers.yml:/etc/traefik/providers/providers.yml
+  # nginx:
+  #   image: nginx:latest
+  #   restart: always
+  #   ports:
+  #     - 80:80
+  #     # - 443:443
+  #   environment:
+  #     ENV: production
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #     - cloud-auth
+  #     - cloud-organizations
+  #     - cloud-server
+  #     - cloud-connector
+  #   networks:
+  #     - all-network
 
 networks:
   all-network:
     driver: bridge
+  cloud-connector-network:
+    driver: bridge
   cloud-auth-network:
+    driver: bridge
+  rabbitmq-network:
     driver: bridge
 
 volumes:
