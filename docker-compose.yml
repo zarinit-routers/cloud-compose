@@ -21,13 +21,14 @@ services:
       - /tmp/rabbitmq/:/var/lib/rabbitmq
 
   cloud-connector:
-    restart: always
+    restart: unless-stopped
     depends_on:
       - cloud-connector-database
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-connector.git
     ports:
       - 8070:8070
+      - 8071:8071
     networks:
       - all-network
       - cloud-connector-network
