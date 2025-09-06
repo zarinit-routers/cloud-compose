@@ -28,7 +28,6 @@ services:
     build: https://github.com/zarinit-routers/cloud-connector.git
     ports:
       - 8080:8080
-      - 8081:8081
     networks:
       - all-network
       - cloud-connector-network
@@ -37,9 +36,9 @@ services:
       - ./env/jwt.env
       - ./env/rabbitmq-connect.env
     environment:
-      CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
+      PORT: 8080
       DATABASE_CONNECTION_STRING: "host='cloud-connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
-      DATABASE_AUTO_MIGRATE: false
+      DATABASE_AUTO_MIGRATE: true
 
   cloud-server:
     restart: always
@@ -50,8 +49,6 @@ services:
     build: https://github.com/zarinit-routers/cloud-server.git
     env_file:
       - ./env/rabbitmq-connect.env
-    environment:
-      CONNECTOR_GRPC_ADDR: "cloud-connector:8081"
     networks:
       - rabbitmq-network
       - all-network
