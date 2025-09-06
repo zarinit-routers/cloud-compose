@@ -86,7 +86,7 @@ services:
     container_name: cloud-organizations
     build: https://github.com/zarinit-routers/cloud-organizations.git
     ports:
-      - "8090:8080"
+      - "8060:8060"
     restart: always
     env_file:
       - ./env/jwt.env
