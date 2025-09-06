@@ -27,7 +27,7 @@ services:
       - rabbit-mq
     build: https://github.com/zarinit-routers/cloud-connector.git
     ports:
-      - 8080:8080
+      - 8070:8070
     networks:
       - all-network
       - cloud-connector-network
@@ -36,9 +36,9 @@ services:
       - ./env/jwt.env
       - ./env/rabbitmq-connect.env
     environment:
-      PORT: 8080
+      PORT: 8070
       DATABASE_CONNECTION_STRING: "host='cloud-connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
-      DATABASE_AUTO_MIGRATE: true
+      DATABASE_AUTO_MIGRATE: false
 
   cloud-server:
     restart: always
