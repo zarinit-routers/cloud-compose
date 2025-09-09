@@ -60,9 +60,10 @@ services:
     ports:
       - "5001:5001"
     restart: always
+    env_file:
+      - ./env/jwt.env
     environment:
-      FLASK_ENV: development
-      SQLALCHEMY_DATABASE_URI: 'postgresql+psycopg2://auth-db-user:CoolPassword123@cloud-auth-database/auth-db' 
+      DB_CONNECTION_STRING: "host=cloud-auth-database user=auth-db-user password=CoolPassword123 dbname=auth-db port=5432 sslmode=disable TimeZone=UTC client_encoding=UTF8"
       ROOT_USER_EMAIL: root@admin.com
       ROOT_USER_PASSWORD: 1
     depends_on:
@@ -107,24 +108,6 @@ services:
       - cloud-organizations
       - cloud-server
       - cloud-connector
-
-  # nginx:
-  #   image: nginx:latest
-  #   restart: always
-  #   ports:
-  #     - 80:80
-  #     # - 443:443
-  #   environment:
-  #     ENV: production
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #   depends_on:
-  #     - cloud-auth
-  #     - cloud-organizations
-  #     - cloud-server
-  #     - cloud-connector
-  #   networks:
-  #     - all-network
 
 networks:
   all-network:
