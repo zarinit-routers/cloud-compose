@@ -39,7 +39,7 @@ services:
     environment:
       PORT: 8070
       DATABASE_CONNECTION_STRING: "host='cloud-connector-database' user='connector' password='CoolPassword123' port='5432' dbname='connector-db' sslmode=disable"
-      DATABASE_AUTO_MIGRATE: false
+      DATABASE_AUTO_MIGRATE: true
 
   cloud-server:
     restart: always
