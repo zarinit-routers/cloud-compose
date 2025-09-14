@@ -88,10 +88,25 @@ services:
     ports:
       - "8060:8060"
     restart: always
+    environment:
+      DB_CONNECTION_STRING: "host=cloud-organizations-database user=organizations-user password=CoolPassword123 dbname=organizations-db port=5432 sslmode=disable TimeZone=UTC client_encoding=UTF8"
+
     env_file:
       - ./env/jwt.env
     networks:
       - all-network
+      - cloud-organizations-network
+  
+  cloud-organizations-database:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: organizations-db
+      POSTGRES_USER: organizations-user
+      POSTGRES_PASSWORD: CoolPassword123
+    volumes:
+      - cloud-organizations-database-data:/var/lib/postgresql/data
+    networks:
+      - cloud-organizations-network
 
   cloud-frontend:
     build: https://github.com/zarinit-routers/cloud-frontend.git
@@ -123,9 +138,12 @@ networks:
     driver: bridge
   cloud-auth-network:
     driver: bridge
+  cloud-organizations-network:
+    driver: bridge
   rabbitmq-network:
     driver: bridge
 
 volumes:
   cloud-auth-database-data:
   cloud-connector-database-data:
+  cloud-organizations-database-data:
