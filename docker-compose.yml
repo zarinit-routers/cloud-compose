@@ -96,6 +96,8 @@ services:
     networks:
       - all-network
       - cloud-organizations-network
+    depends_on:
+      - cloud-organizations-database
   
   cloud-organizations-database:
     image: postgres:15
